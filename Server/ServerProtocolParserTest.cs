@@ -46,7 +46,7 @@ namespace Org.Kevoree.Library.Server
         {
             var res = cpp.parse("register/a/b");
             Assert.IsTrue(res is Register);
-            Assert.AreEqual("a", ((Register)res).GetGroup());
+            Assert.AreEqual("a", ((Register)res).GetNodeName());
             Assert.AreEqual("b", ((Register)res).GetModel());
         }
     }

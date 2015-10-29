@@ -12,6 +12,9 @@ using Org.Kevoree.Core.Marshalled;
 using org.kevoree.pmodeling.api.json;
 using org.kevoree.factory;
 using org.kevoree;
+using org.kevoree.pmodeling.api.trace;
+using Org.Kevoree.Core.Api;
+using Org.Kevoree.Core.Api.Handler;
 
 namespace Org.Kevoree.Library.Server
 {
@@ -19,7 +22,8 @@ namespace Org.Kevoree.Library.Server
     {
 
         private ServerProtocolParser spp = new ServerProtocolParser();
-        private readonly JSONModelLoader _loader = new JSONModelLoader(new DefaultKevoreeFactory());
+        private readonly Dictionary<string, WebSocket> clients = new Dictionary<string, WebSocket>();
+
 
         protected override void OnMessage(MessageEventArgs e)
         {
@@ -33,7 +37,7 @@ namespace Org.Kevoree.Library.Server
                 }
                 else if (message is Push)
                 {
-                    PushHandler((Push) message);
+                    PushHandler((Push)message);
                 }
                 else if (message is Register)
                 {
@@ -49,39 +53,90 @@ namespace Org.Kevoree.Library.Server
 
         private void RegisterHandler(Register register)
         {
-            throw new NotImplementedException();
+            var client = this.Context.WebSocket;
+            this.clients.Add(register.GetNodeName(), client);
+            var currentModel = WSGroupServices.GetModelService().getCurrentModel().getModel();
+
+
+            var kf = new org.kevoree.factory.DefaultKevoreeFactory();
+            // we clone the marshalled instance into a proper one
+            var modelToApply = (ContainerRoot)kf.createJSONLoader().loadModelFromString(currentModel.serialize()).get(0);
+
+            // We merge received model with current one
+            ContainerRoot recModel = (ContainerRoot)WSGroupServices.GetJsonModelLoader()
+                        .loadModelFromString(register.GetModel()).get(0);
+
+            TraceSequence tseq = WSGroupServices.GetModelCompare().merge(modelToApply, recModel);
+            tseq.applyOn(modelToApply);
+
+            Dictionary<string, string> context = new Dictionary<string, string>();
+            context.Add("nodeName", register.GetNodeName());
+            context.Add("groupName", WSGroupServices.GetContext().getInstanceName());
+            try
+            {
+                WSGroupServices.GetKevScriptEngine()
+                    .execute(WSGroupServices.GetTemplateEngine().Process(WSGroupServices.GetOnConnect(), context), modelToApply);
+            }
+            catch (Exception)
+            {
+                WSGroupServices.GetLogger()
+                    .Error("Unable to parse onConnect KevScript. Broadcasting model without onConnect process.");
+            }
+            finally
+            {
+                var marshalled = new ContainerRootMarshalled(modelToApply);
+
+                // update locally
+                WSGroupServices.GetModelService().update(marshalled, null);
+
+                // broadcast changes
+                BroadcastToTheGroup(new Push(marshalled.serialize()));
+            }
         }
 
         private void PushHandler(Push pushMessage)
         {
-            var model = pushMessage.getModel();
-            if (!String.IsNullOrEmpty(model))
+            ModelUtil.UpdateModelLocaly(pushMessage.getModel());
+            BroadcastToTheGroup(pushMessage);
+        }
+
+        private void BroadcastToTheGroup(Message pushMessage)
+        {
+            foreach (var client in clients)
             {
-                var models = _loader.loadModelFromString(model);
-                if (models != null && model.Length > 0)
-                {
-                    WSGroupServices.GetModelService().update(new ContainerRootMarshalled((ContainerRoot)models.get(0)), null);
-                }
-                else
-                {
-                    WSGroupServices.GetLogger().Warn(string.Format("\"{0}\" received model is empty, push aborted",
-                        WSGroupServices.GetContext().getInstanceName()));
-                }
-            }
-            else
-            {
-                WSGroupServices.GetLogger().Warn(string.Format("\"{0}\" push message does not contain a model, push aborted", WSGroupServices.GetContext().getInstanceName()));
+                client.Value.Send(pushMessage.Serialize());
             }
         }
 
         private void PullHandler()
         {
-            Send(WSGroupServices.GetModelService().getCurrentModel().getModel().serialize()); 
+            Send(WSGroupServices.GetModelService().getCurrentModel().getModel().serialize());
         }
 
         protected override void OnClose(CloseEventArgs e)
         {
             WSGroupServices.GetLogger().Info("Socket closed");
+            foreach (var client in clients)
+            {
+                if (!client.Value.IsAlive)
+                {
+                    Dictionary<string, string> context = new Dictionary<string, string>();
+                    context.Add("nodeName", client.Key);
+                    var kevscript = WSGroupServices.GetTemplateEngine()
+                        .Process(WSGroupServices.GetOnDisconnect(), context);
+                    UpdateCallback cb = (bool applied) => WSGroupServices.GetLogger().Info("onDisconnect result from " + client.Key + " : " + applied);
+                    try
+                    {
+                        WSGroupServices.GetModelService().submitScript(kevscript, cb);
+                    }
+                    catch (Exception)
+                    {
+                        WSGroupServices.GetLogger().Error("Unable to parse onDisconnect KevScript. No changes made after the disconnection of " + client.Key);
+
+                    }
+                }
+            }
+
         }
 
         protected override void OnOpen()

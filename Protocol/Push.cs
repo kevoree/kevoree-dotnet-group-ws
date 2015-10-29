@@ -19,5 +19,10 @@ namespace Org.Kevoree.Library.Protocol
         {
             return this._model;
         }
+
+        public override string Serialize()
+        {
+            return "push/" + _model;
+        }
     }
 }

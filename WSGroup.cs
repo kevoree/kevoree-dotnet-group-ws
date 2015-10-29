@@ -10,6 +10,8 @@ using Org.Kevoree.Log.Api;
 using WebSocketSharp.Server;
 using System.Threading;
 using Org.Kevoree.Library.Server;
+using org.kevoree.kevscript;
+using Org.Kevoree.Library.Client;
 
 namespace Org.Kevoree.Library
 {
@@ -40,12 +42,18 @@ namespace Org.Kevoree.Library
 
         private bool _stop = false;
 
+
+        [KevoreeInject] private KevScriptEngine kevScriptEngine;
+
         [Start]
         public void Start()
         {
             WSGroupServices.RegisterLogger(GetLogger);
             WSGroupServices.RegisterModelService(GetModelService);
             WSGroupServices.RegisterContext(GetContext);
+            WSGroupServices.RegisterKevScriptEngine(GetKevScriptEngine);
+            WSGroupServices.RegisterOnConnect(GetOnConnect);
+            WSGroupServices.RegisterOnDisconnect(GetOnDisconnect);
             if (HasMaster())
             {
                 if (IsMaster())
@@ -86,7 +94,8 @@ namespace Org.Kevoree.Library
 
         private void StartClient()
         {
-            throw new NotImplementedException();
+            _logger.Debug("Start WSChan as client ");
+            new Thread(new ThreadStart(new WSGroupClient(this).Start)).Start();
         }
 
         private void StartServer()
@@ -109,14 +118,34 @@ namespace Org.Kevoree.Library
             return this._logger;
         }
 
+        internal KevScriptEngine GetKevScriptEngine()
+        {
+            return this.kevScriptEngine;
+        }
+
         internal int GetPort()
         {
             return this.port;
         }
 
+        internal string GetMaster()
+        {
+            return master;
+        }
+
         internal bool GetStop()
         {
             return this._stop;
+        }
+
+        internal string GetOnConnect()
+        {
+            return this.onConnect;
+        }
+
+        internal string GetOnDisconnect()
+        {
+            return this.onDisconnect;
         }
     }
 }
