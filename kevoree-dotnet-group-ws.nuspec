@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Org.Kevoree.Group.WSGroup</id>
+    <version>1.0.0-rc1</version>
+    <title>Kevoree WSGroup</title>
+    <authors>Manuel Leduc</authors>
+    <owners>Kevoree</owners>
+    <licenseUrl>https://github.com/kevoree/kevoree-dotnet-group-ws/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/kevoree/kevoree-dotnet-group-ws</projectUrl>
+    <iconUrl>https://avatars3.githubusercontent.com/u/5556542?v=3&amp;s=200</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Kevoree WS Group</description>
+    <releaseNotes>First stable release.</releaseNotes>
+    <copyright>Copyright 2015</copyright>
+    <tags>Kevoree Group WS WSGroup</tags>
+    <dependencies>
+      <dependency id="IKVM" version="7.2.4630.5" />
+      <dependency id="NUnit" version="2.6.4" />
+      <dependency id="Org.Kevoree.Core.Model" version="5.2.7" />
+      <dependency id="Org.Kevoree.Log.Api" version="1.0.0" />
+      <dependency id="org-kevoree-annotation" version="2.0.6" />
+      <dependency id="org-kevoree-api" version="1.4.0" />
+      <dependency id="WebSocketSharp" version="1.0.3-rc9" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin/Release/kevoree-dotnet-group-ws.dll" target="lib/net40/kevoree-dotnet-group-ws.dll" />
+  </files>
+</package>
