@@ -43,7 +43,7 @@ namespace Org.Kevoree.Library
         private bool _stop = false;
 
 
-        [KevoreeInject] private KevScriptEngine kevScriptEngine;
+        [KevoreeInject] private KevScriptEngine _kevScriptEngine;
 
         [Start]
         public void Start()
@@ -120,7 +120,7 @@ namespace Org.Kevoree.Library
 
         internal KevScriptEngine GetKevScriptEngine()
         {
-            return this.kevScriptEngine;
+            return this._kevScriptEngine;
         }
 
         internal int GetPort()

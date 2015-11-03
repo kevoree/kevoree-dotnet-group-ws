@@ -28,6 +28,8 @@ namespace Org.Kevoree.Library.Server
             {
                 Thread.Sleep(1000);
             }
+
+            masterServer.Stop();
         }
     }
 }
