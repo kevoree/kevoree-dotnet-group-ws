@@ -12,11 +12,13 @@ using System.Threading;
 using Org.Kevoree.Library.Server;
 using org.kevoree.kevscript;
 using Org.Kevoree.Library.Client;
+using System.ComponentModel.Composition;
 
 namespace Org.Kevoree.Library
 {
     [GroupType]
     [Serializable]
+    [Export(typeof(DeployUnit))]
     public class WSGroup : MarshalByRefObject, DeployUnit
     {
         [KevoreeInject]
