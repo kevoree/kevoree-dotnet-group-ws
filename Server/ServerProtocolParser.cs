@@ -1,16 +1,12 @@
 ﻿using Org.Kevoree.Library.Protocol;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Org.Kevoree.Library.Server
 {
     internal class ServerProtocolParser
     {
-        public Message parse(string message)
+        public Message Parse(string message)
         {
             Message ret;
             if (String.IsNullOrWhiteSpace(message))

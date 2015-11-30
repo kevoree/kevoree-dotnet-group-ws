@@ -1,9 +1,4 @@
 ﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Org.Kevoree.Library.Protocol;
 
 namespace Org.Kevoree.Library.Server
@@ -17,34 +12,34 @@ namespace Org.Kevoree.Library.Server
         [Test]
         public void TestEmptyMessage()
         {
-            Assert.Throws(typeof(ServerProtocolParsingError), new TestDelegate(() => cpp.parse("  ")));
+            Assert.Throws(typeof(ServerProtocolParsingError), () => cpp.Parse("  "));
         }
 
         [Test]
         public void TestWrongMessageMessage()
         {
-            Assert.Throws(typeof(ServerProtocolParsingError), new TestDelegate(() => cpp.parse("push")));
+            Assert.Throws(typeof(ServerProtocolParsingError), () => cpp.Parse("push"));
         }
 
         [Test]
         public void TestGoodMessagePushMessage()
         {
-            var res = cpp.parse("push/{}");
+            var res = cpp.Parse("push/{}");
             Assert.IsTrue(res is Push);
-            Assert.AreEqual("{}", ((Push)res).getModel());
+            Assert.AreEqual("{}", ((Push)res).GetModel());
         }
 
         [Test]
         public void TestGoodMessagePullMessage()
         {
-            var res = cpp.parse("pull");
+            var res = cpp.Parse("pull");
             Assert.IsTrue(res is Pull);
         }
 
         [Test]
         public void TestGoodMessageRegisterMessage()
         {
-            var res = cpp.parse("register/a/b");
+            var res = cpp.Parse("register/a/b");
             Assert.IsTrue(res is Register);
             Assert.AreEqual("a", ((Register)res).GetNodeName());
             Assert.AreEqual("b", ((Register)res).GetModel());

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Org.Kevoree.Library.Protocol
+﻿namespace Org.Kevoree.Library.Protocol
 {
     public class Register : Message
     {
@@ -13,8 +7,8 @@ namespace Org.Kevoree.Library.Protocol
 
         public Register(string nodeName, string model)
         {
-            this._nodeName = nodeName;
-            this._model = model;
+            _nodeName = nodeName;
+            _model = model;
         }
 
         public string GetNodeName()

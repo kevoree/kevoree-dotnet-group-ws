@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using WebSocketSharp.Server;
 
 namespace Org.Kevoree.Library.Server
@@ -10,21 +6,21 @@ namespace Org.Kevoree.Library.Server
     class WSGroupServer
     {
         
-        private readonly WSGroup wSGroup;
+        private readonly WSGroup _wSGroup;
 
-        public WSGroupServer(WSGroup wSGroup)
+        public WSGroupServer(WSGroup _wSGroup)
         {
-            this.wSGroup = wSGroup;
+            this._wSGroup = _wSGroup;
         }
 
         internal void Start()
         {
-            WebSocketServer masterServer = new WebSocketServer("ws://127.0.0.1:" + wSGroup.GetPort());
+            WebSocketServer masterServer = new WebSocketServer("ws://127.0.0.1:" + _wSGroup.GetPort());
             masterServer.AddWebSocketService<WSGroupServerWSService>("/");
             masterServer.Start();
-            wSGroup.GetLogger().Debug("Server started");
+            _wSGroup.GetLogger().Debug("Server started");
 
-            while (!wSGroup.GetStop())
+            while (!_wSGroup.GetStop())
             {
                 Thread.Sleep(1000);
             }

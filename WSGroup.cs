@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.Composition;
+using System.Threading;
+using org.kevoree.kevscript;
 using Org.Kevoree.Annotation;
 using Org.Kevoree.Core.Api;
+using Org.Kevoree.Library.Client;
+using Org.Kevoree.Library.Server;
 using Org.Kevoree.Library.Util;
 using Org.Kevoree.Log.Api;
-using WebSocketSharp.Server;
-using System.Threading;
-using Org.Kevoree.Library.Server;
-using org.kevoree.kevscript;
-using Org.Kevoree.Library.Client;
-using System.ComponentModel.Composition;
 
 namespace Org.Kevoree.Library
 {
@@ -42,7 +37,7 @@ namespace Org.Kevoree.Library
         [KevoreeInject]
         private ILogger _logger;
 
-        private bool _stop = false;
+        private bool _stop;
 
 
         [KevoreeInject] private KevScriptEngine _kevScriptEngine;
@@ -91,18 +86,18 @@ namespace Org.Kevoree.Library
         [Stop]
         public void Stop()
         {
-            this._stop = true;
+            _stop = true;
         }
 
         private void StartClient()
         {
             _logger.Debug("Start WSChan as client ");
-            new Thread(new ThreadStart(new WSGroupClient(this).Start)).Start();
+            new Thread(new WSGroupClient(this).Start).Start();
         }
 
         private void StartServer()
         {
-            new Thread(new ThreadStart(new WSGroupServer(this).Start)).Start();
+            new Thread(new WSGroupServer(this).Start).Start();
         }
 
         private bool HasMaster()
@@ -117,17 +112,17 @@ namespace Org.Kevoree.Library
 
         internal ILogger GetLogger()
         {
-            return this._logger;
+            return _logger;
         }
 
         internal KevScriptEngine GetKevScriptEngine()
         {
-            return this._kevScriptEngine;
+            return _kevScriptEngine;
         }
 
         internal int GetPort()
         {
-            return this.port;
+            return port;
         }
 
         internal string GetMaster()
@@ -137,17 +132,17 @@ namespace Org.Kevoree.Library
 
         internal bool GetStop()
         {
-            return this._stop;
+            return _stop;
         }
 
         internal string GetOnConnect()
         {
-            return this.onConnect;
+            return onConnect;
         }
 
         internal string GetOnDisconnect()
         {
-            return this.onDisconnect;
+            return onDisconnect;
         }
     }
 }

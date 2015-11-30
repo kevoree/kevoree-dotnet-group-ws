@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Org.Kevoree.Library.Protocol
+﻿namespace Org.Kevoree.Library.Protocol
 {
     public class Push: Message
     {
@@ -12,12 +6,12 @@ namespace Org.Kevoree.Library.Protocol
 
         public Push(string model)
         {
-            this._model = model;
+            _model = model;
         }
 
-        public string getModel()
+        public string GetModel()
         {
-            return this._model;
+            return _model;
         }
 
         public override string Serialize()

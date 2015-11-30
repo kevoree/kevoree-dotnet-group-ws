@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Org.Kevoree.Core.Api;
-using Org.Kevoree.Log.Api;
 using org.kevoree.factory;
 using org.kevoree.kevscript;
 using org.kevoree.pmodeling.api;
 using org.kevoree.pmodeling.api.compare;
 using org.kevoree.pmodeling.api.json;
+using Org.Kevoree.Core.Api;
+using Org.Kevoree.Log.Api;
 
 namespace Org.Kevoree.Library.Util
 {
@@ -19,17 +15,17 @@ namespace Org.Kevoree.Library.Util
         private static Func<ModelService> _modelService;
         private static Func<Context> _context;
 
-        private static readonly KevoreeFactory factory = new DefaultKevoreeFactory();
+        private static readonly KevoreeFactory Factory = new DefaultKevoreeFactory();
 
-        private static readonly ModelCloner cloner = factory.createModelCloner();
+        private static readonly ModelCloner Cloner = Factory.createModelCloner();
 
-        private static readonly JSONModelLoader jsonModelLoader = new JSONModelLoader(new DefaultKevoreeFactory());
+        private static readonly JSONModelLoader JsonModelLoader = new JSONModelLoader(new DefaultKevoreeFactory());
 
-        private static readonly ModelCompare compare = new ModelCompare(new DefaultKevoreeFactory());
-        private static Func<org.kevoree.kevscript.KevScriptEngine> _kevScriptEngine;
+        private static readonly ModelCompare Compare = new ModelCompare(new DefaultKevoreeFactory());
+        private static Func<KevScriptEngine> _kevScriptEngine;
         private static Func<string> _onConnect;
         private static Func<string> _onDisconnect;
-        private static TemplateEngine TemplateEngine = new TemplateEngine();
+        private static readonly TemplateEngine TemplateEngine = new TemplateEngine();
 
         public static void RegisterLogger(Func<ILogger> logger)
         {
@@ -56,29 +52,29 @@ namespace Org.Kevoree.Library.Util
             return _context();
         }
 
-        internal static void RegisterContext(Func<Context> GetContext)
+        internal static void RegisterContext(Func<Context> getContext)
         {
-            _context = GetContext;
+            _context = getContext;
         }
 
         internal static ModelCloner GetCloner()
         {
-            return cloner;
+            return Cloner;
         }
 
         internal static JSONModelLoader GetJsonModelLoader()
         {
-            return jsonModelLoader;
+            return JsonModelLoader;
         }
 
         internal static ModelCompare GetModelCompare()
         {
-            return compare;
+            return Compare;
         }
 
-        internal static void RegisterKevScriptEngine(Func<org.kevoree.kevscript.KevScriptEngine> GetKevScriptEngine)
+        internal static void RegisterKevScriptEngine(Func<KevScriptEngine> getKevScriptEngine)
         {
-            _kevScriptEngine = GetKevScriptEngine;
+            _kevScriptEngine = getKevScriptEngine;
         }
 
         internal static KevScriptEngine GetKevScriptEngine()
@@ -97,14 +93,14 @@ namespace Org.Kevoree.Library.Util
             return _onDisconnect();
         }
 
-        internal static void RegisterOnConnect(Func<string> GetOnConnect)
+        internal static void RegisterOnConnect(Func<string> getOnConnect)
         {
-            _onConnect = GetOnConnect;
+            _onConnect = getOnConnect;
         }
 
-        internal static void RegisterOnDisconnect(Func<string> GetOnDisconnect)
+        internal static void RegisterOnDisconnect(Func<string> getOnDisconnect)
         {
-            _onDisconnect = GetOnDisconnect;
+            _onDisconnect = getOnDisconnect;
         }
 
         internal static TemplateEngine GetTemplateEngine()
