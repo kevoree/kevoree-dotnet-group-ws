@@ -16,12 +16,12 @@
     <tags>Kevoree Group WS WSGroup</tags>
     <dependencies>
       <dependency id="IKVM" version="[7.2.4630.5]" />
-      <dependency id="NUnit" version="2.6.4" />
+      <dependency id="NUnit" version="3.0.0" />
       <dependency id="Org.Kevoree.Core.KevScript" version="5.2.23" />
       <dependency id="Org.Kevoree.Core.Model" version="5.2.9" />
       <dependency id="Org.Kevoree.Log.Api" version="1.0.0" />
       <dependency id="org-kevoree-annotation" version="2.0.6" />
-      <dependency id="org-kevoree-api" version="1.7.0" />
+      <dependency id="org-kevoree-api" version="1.8.0" />
       <dependency id="WebSocketSharp" version="1.0.3-rc9" />
     </dependencies>
   </metadata>
