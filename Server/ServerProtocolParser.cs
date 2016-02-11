@@ -29,7 +29,7 @@ namespace Org.Kevoree.Library.Server
             }
             else
             {
-                var matc = Regex.Match(messageTrimed, "^register/([a-z-0-9]+)/(.+)$");
+                var matc = Regex.Match(messageTrimed, "^register/([a-z-0-9]+)/(.+)$", RegexOptions.Multiline | RegexOptions.Singleline);
                 if (matc.Success)
                 {
                     var group = matc.Groups[1].Value;
