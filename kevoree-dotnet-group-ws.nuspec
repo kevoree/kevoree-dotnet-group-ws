@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Org.Kevoree.Group.WSGroup</id>
-    <version>1.0.4-rc1</version>
+    <version>1.1.0-rc1</version>
     <title>Kevoree WSGroup</title>
     <authors>Manuel Leduc</authors>
     <owners>Kevoree</owners>
