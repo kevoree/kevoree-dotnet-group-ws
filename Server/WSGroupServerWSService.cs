@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using org.kevoree;
 using org.kevoree.factory;
+using org.kevoree.kevscript;
 using org.kevoree.pmodeling.api.trace;
 using Org.Kevoree.Core.Api;
 using Org.Kevoree.Core.Marshalled;
@@ -41,7 +43,7 @@ namespace Org.Kevoree.Library.Server
             }
             catch (ServerProtocolParsingError)
             {
-                WSGroupServices.GetLogger().Error("Message parsing error");
+                WSGroupServices.GetLogger().Error("Message parsing error:\n" + e.Data.Substring(0, 200));
             }
         }
 
@@ -66,26 +68,73 @@ namespace Org.Kevoree.Library.Server
             Dictionary<string, string> context = new Dictionary<string, string>();
             context.Add("nodeName", register.GetNodeName());
             context.Add("groupName", WSGroupServices.GetContext().getInstanceName());
-            try
+            if (DoesFilterMatchIncomingNodeName(register.GetNodeName(), WSGroupServices.GetFilter()))
             {
-                WSGroupServices.GetKevScriptEngine()
-                    .execute(WSGroupServices.GetTemplateEngine().Process(WSGroupServices.GetOnConnect(), context), modelToApply);
+                ApplyOnConnect(context, modelToApply);
             }
-            catch (Exception)
+            else
             {
-                WSGroupServices.GetLogger()
-                    .Error("Unable to parse onConnect KevScript. Broadcasting model without onConnect process.");
+                var push = new Push(new ContainerRootMarshalled(modelToApply).serialize());
+                _clients[register.GetNodeName()].Send(push.Serialize());
             }
-            finally
-            {
-                var marshalled = new ContainerRootMarshalled(modelToApply);
+        }
 
-                // update locally
-                WSGroupServices.GetModelService().update(marshalled, null);
+        private void ApplyOnConnect(Dictionary<string, string> context, ContainerRoot modelToApply)
+        {
+            var onConnectKevScript = WSGroupServices.GetOnConnect();
+            if (!onConnectKevScript.IsNullOrEmpty())
+            {
+                try
+                {
+                    var kevScriptEngine = WSGroupServices.GetKevScriptEngine();
+                    var templateEngine = WSGroupServices.GetTemplateEngine();
+                    var process = templateEngine.Process(onConnectKevScript, context);
+                    kevScriptEngine.execute(process, modelToApply);
+                }
+                catch (Exception e)
+                {
+                    WSGroupServices.GetLogger()
+                        .Error("["+e.Message+"] - Unable to parse onConnect KevScript. Broadcasting model without onConnect process.\n" + onConnectKevScript );
+                    WSGroupServices.GetLogger().Error(e.StackTrace);
+                }
+                finally
+                {
+                    var marshalled = new ContainerRootMarshalled(modelToApply);
 
-                // broadcast changes
-                BroadcastToTheGroup(new Push(marshalled.serialize()));
+                    // update locally
+                    WSGroupServices.GetModelService().update(marshalled, null);
+
+                    // broadcast changes
+                    BroadcastToTheGroup(new Push(marshalled.serialize()));
+                }
             }
+        }
+
+        /**
+         *  Check if the filter match the node name. If the filter is empty or is not a valid regex expression the method return true (legacy compatibility).
+         */
+        private bool DoesFilterMatchIncomingNodeName(string nodeName, string filter)
+        {
+            bool ret;
+            if (filter.IsNullOrEmpty())
+            {
+                ret = true;
+            }
+            else
+            {
+                try
+                {
+                    var regex = new Regex(filter);
+                    var match = regex.Match(nodeName);
+                    ret = match.Success;
+                }
+                catch (ArgumentException e)
+                {
+                    WSGroupServices.GetLogger().Error(e.Message);
+                    ret = true;
+                }
+            }
+            return ret;
         }
 
         private void PushHandler(Push pushMessage)
@@ -112,25 +161,39 @@ namespace Org.Kevoree.Library.Server
             WSGroupServices.GetLogger().Info("Socket closed");
             foreach (var client in _clients)
             {
-                if (!client.Value.IsAlive)
+                if (!client.Value.IsAlive && DoesFilterMatchIncomingNodeName(client.Key, WSGroupServices.GetFilter()))
                 {
-                    Dictionary<string, string> context = new Dictionary<string, string>();
-                    context.Add("nodeName", client.Key);
-                    var kevscript = WSGroupServices.GetTemplateEngine()
-                        .Process(WSGroupServices.GetOnDisconnect(), context);
-                    UpdateCallback cb = applied => WSGroupServices.GetLogger().Info("onDisconnect result from " + client.Key + " : " + applied);
-                    try
-                    {
-                        WSGroupServices.GetModelService().submitScript(kevscript, cb);
-                    }
-                    catch (Exception)
-                    {
-                        WSGroupServices.GetLogger().Error("Unable to parse onDisconnect KevScript. No changes made after the disconnection of " + client.Key);
-
-                    }
+                    ApplyOnDisconnect(client);
                 }
             }
 
+        }
+
+        private static void ApplyOnDisconnect(KeyValuePair<string, WebSocket> client)
+        {
+            Dictionary<string, string> context = new Dictionary<string, string>();
+            context.Add("nodeName", client.Key);
+            var onDisconnectKevScript = WSGroupServices.GetOnDisconnect();
+            if (!onDisconnectKevScript.IsNullOrEmpty())
+            {
+                var kevscript = WSGroupServices.GetTemplateEngine()
+                    .Process(onDisconnectKevScript, context);
+                UpdateCallback cb =
+                    applied =>
+                        WSGroupServices.GetLogger()
+                            .Info("onDisconnect result from " + client.Key + " : " + applied);
+                try
+                {
+                    WSGroupServices.GetModelService().submitScript(kevscript, cb);
+                }
+                catch (Exception)
+                {
+                    WSGroupServices.GetLogger()
+                        .Error(
+                            "Unable to parse onDisconnect KevScript. No changes made after the disconnection of " +
+                            client.Key);
+                }
+            }
         }
 
         protected override void OnOpen()

@@ -25,6 +25,7 @@ namespace Org.Kevoree.Library.Util
         private static Func<KevScriptEngine> _kevScriptEngine;
         private static Func<string> _onConnect;
         private static Func<string> _onDisconnect;
+        private static Func<string> _filter;
         private static readonly TemplateEngine TemplateEngine = new TemplateEngine();
 
         public static void RegisterLogger(Func<ILogger> logger)
@@ -87,6 +88,11 @@ namespace Org.Kevoree.Library.Util
             return _onConnect();
         }
 
+        internal static string GetFilter()
+        {
+            return _filter();
+        }
+
 
         internal static string GetOnDisconnect()
         {
@@ -96,6 +102,11 @@ namespace Org.Kevoree.Library.Util
         internal static void RegisterOnConnect(Func<string> getOnConnect)
         {
             _onConnect = getOnConnect;
+        }
+
+        internal static void RegisterFilter(Func<string> getFilter)
+        {
+            _filter = getFilter;
         }
 
         internal static void RegisterOnDisconnect(Func<string> getOnDisconnect)

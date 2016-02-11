@@ -22,6 +22,10 @@ namespace Org.Kevoree.Library
         [Param(Optional = true)]
         private string master;
 
+        private string currentMaster;
+
+        [Param(Optional = true)] private string filter;
+
         [KevoreeInject]
         public ModelService _modelService;
 
@@ -34,23 +38,28 @@ namespace Org.Kevoree.Library
         [Param(Optional = true, FragmentDependent = true, DefaultValue = "9000")]
         private int port = 9000;
 
+        private int currentPort;
+
         [KevoreeInject]
         private ILogger _logger;
 
         private bool _stop;
 
 
-        [KevoreeInject] private KevScriptEngine _kevScriptEngine;
+        private readonly KevScriptEngine _kevScriptEngine = new KevScriptEngine();
 
         [Start]
         public void Start()
         {
+            this.currentMaster = master;
+            this.currentPort = port;
             WSGroupServices.RegisterLogger(GetLogger);
             WSGroupServices.RegisterModelService(GetModelService);
             WSGroupServices.RegisterContext(GetContext);
             WSGroupServices.RegisterKevScriptEngine(GetKevScriptEngine);
             WSGroupServices.RegisterOnConnect(GetOnConnect);
             WSGroupServices.RegisterOnDisconnect(GetOnDisconnect);
+            WSGroupServices.RegisterFilter(GetFilter);
             if (HasMaster())
             {
                 if (IsMaster())
@@ -69,6 +78,16 @@ namespace Org.Kevoree.Library
                 StartServer();
             }
             _logger.Debug("WSGroup stopped");
+        }
+
+        [Update]
+        public void Update()
+        {
+            if (currentPort != port || currentMaster != master)
+            {
+                Stop();
+                Start();
+            }
         }
 
 
@@ -143,6 +162,11 @@ namespace Org.Kevoree.Library
         internal string GetOnDisconnect()
         {
             return onDisconnect;
+        }
+
+        internal string GetFilter()
+        {
+            return filter;
         }
     }
 }
